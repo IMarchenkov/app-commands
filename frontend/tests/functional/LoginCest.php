@@ -32,7 +32,7 @@ class LoginCest
     protected function formParams($login, $password)
     {
         return [
-            'LoginForm[username]' => $login,
+            'LoginForm[login]' => $login,
             'LoginForm[password]' => $password,
         ];
     }
@@ -40,20 +40,20 @@ class LoginCest
     public function checkEmpty(FunctionalTester $I)
     {
         $I->submitForm('#login-form', $this->formParams('', ''));
-        $I->seeValidationError('Username cannot be blank.');
+        $I->seeValidationError('login cannot be blank.');
         $I->seeValidationError('Password cannot be blank.');
     }
 
     public function checkWrongPassword(FunctionalTester $I)
     {
         $I->submitForm('#login-form', $this->formParams('admin', 'wrong'));
-        $I->seeValidationError('Incorrect username or password.');
+        $I->seeValidationError('Incorrect login or password.');
     }
 
     public function checkInactiveAccount(FunctionalTester $I)
     {
         $I->submitForm('#login-form', $this->formParams('test.test', 'Test1234'));
-        $I->seeValidationError('Incorrect username or password');
+        $I->seeValidationError('Incorrect login or password');
     }
 
     public function checkValidLogin(FunctionalTester $I)

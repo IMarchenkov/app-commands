@@ -2,7 +2,6 @@
 namespace common\models;
 
 use Yii;
-use yii\base\NotSupportedException;
 use yii\behaviors\TimestampBehavior;
 use yii\db\ActiveRecord;
 use yii\web\IdentityInterface;
@@ -11,7 +10,7 @@ use yii\web\IdentityInterface;
  * User model
  *
  * @property integer $id
- * @property string $username
+ * @property string $login
  * @property string $password_hash
  * @property string $password_reset_token
  * @property string $verification_token
@@ -21,6 +20,7 @@ use yii\web\IdentityInterface;
  * @property integer $created_at
  * @property integer $updated_at
  * @property string $password write-only password
+ * @property string $access_token
  */
 class User extends ActiveRecord implements IdentityInterface
 {
@@ -71,18 +71,18 @@ class User extends ActiveRecord implements IdentityInterface
      */
     public static function findIdentityByAccessToken($token, $type = null)
     {
-        throw new NotSupportedException('"findIdentityByAccessToken" is not implemented.');
+        return static::findOne(['access_token' => $token]);
     }
 
     /**
-     * Finds user by username
+     * Finds user by login
      *
-     * @param string $username
+     * @param string $login
      * @return static|null
      */
-    public static function findByUsername($username)
+    public static function findByLogin($login)
     {
-        return static::findOne(['username' => $username, 'status' => self::STATUS_ACTIVE]);
+        return static::findOne(['login' => $login, 'status' => self::STATUS_ACTIVE]);
     }
 
     /**
@@ -205,5 +205,10 @@ class User extends ActiveRecord implements IdentityInterface
     public function removePasswordResetToken()
     {
         $this->password_reset_token = null;
+    }
+
+    public function generateAccessToken()
+    {
+        $this->access_token = Yii::$app->security->generateRandomString() . '_' . time();
     }
 }
