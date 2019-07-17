@@ -1,11 +1,11 @@
 <?php
 
-namespace common\models;
+namespace api\models;
 
 use Yii;
-use yii\base\Model;
+use common\models\User;
 
-class RegistrationUser extends Model
+class RegistrationUser extends ValidationModel
 {
     public $login;
     public $email;
@@ -20,24 +20,19 @@ class RegistrationUser extends Model
             ['login', 'trim'],
             ['login', 'required', 'message' => 'Логин не может быть пустым.'],
             ['login', 'unique', 'targetClass' => '\common\models\User', 'message' => 'Данный логин уже используется.'],
-            ['login', 'string', 'min' => 2, 'max' => 255],
+            ['login', 'string', 'min' => 2, 'max' => 255, 'tooShort' => 'Логин должен содержать как минимум 2 символа.', 'tooLong' => 'Максимальная длина логина - 255 символов.'],
 
             ['email', 'trim'],
             ['email', 'required', 'message' => 'Email не может быть пустым.'],
-            ['email', 'email'],
-            ['email', 'string', 'max' => 255],
+            ['email', 'email', 'message' => 'Не валидный email адрес.'],
+            ['email', 'string', 'max' => 255, 'tooLong' => 'Email может содержать максимум 255 символов.'],
             ['email', 'unique', 'targetClass' => '\common\models\User', 'message' => 'Данный email уже используется.'],
 
             ['password', 'required', 'message' => 'Пароль не может быть пустым.'],
-            ['password', 'string', 'min' => 6, 'message' => 'Пароль должен содержать как минимум 6 символов.'],
+            ['password', 'string', 'min' => 6, 'tooShort' => 'Пароль должен содержать как минимум 6 символов.'],
         ];
     }
 
-    /**
-     * Signs user up.
-     *
-     * @return bool whether the creating new account was successful and email was sent
-     */
     public function signup()
     {
         if (!$this->validate()) {
@@ -53,17 +48,6 @@ class RegistrationUser extends Model
         $user->generateAccessToken();
 
         return $user->save() && $this->sendEmail($user);
-    }
-
-    public function getErrorMessage() {
-        $arrayErrors = [];
-        foreach ($this->getErrors() as $key => $error) {
-            foreach ($error as $errorMessage) {
-                $arrayErrors[$key] = $errorMessage;
-            }
-        }
-
-        return $arrayErrors;
     }
 
     private function sendEmail($user)

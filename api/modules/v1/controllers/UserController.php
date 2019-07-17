@@ -3,52 +3,72 @@
 namespace api\modules\v1\controllers;
 
 use Yii;
-use yii\rest\ActiveController;
-use common\models\User;
-use common\models\RegistrationUser;
+use yii\filters\auth\HttpBearerAuth;
+use api\models\RegistrationUser;
+use api\models\VerifyEmail;
+use api\models\AuthorizationUser;
 
-class UserController extends ActiveController
+class UserController extends ApiController
 {
-    public $modelClass = User::class;
-
-    public function actions()
+    public function behaviors()
     {
-        $actions = parent::actions();
-        unset($actions['index']);
-        unset($actions['create']);
+        $behaviors = parent::behaviors();
 
-        return $actions;
+        $behaviors['authenticator'] = [
+            'class' => HttpBearerAuth::class,
+            'except' => ['create', 'verify-email', 'auth'],
+        ];
+
+        return $behaviors;
     }
 
-    public function actionCreate()
+    public function actionUpdate()
     {
-        return [
-            'status' => 'OK',
-        ];
+        return $this->sendResponse(self::STATUS_OK);
     }
 
     public function actionIndex()
     {
-        $login = Yii::$app->request->post('login');
-        $password = Yii::$app->request->post('password');
-        $email = Yii::$app->request->post('email');
+        return $this->sendResponse(self::STATUS_OK, Yii::$app->user->identity);
+    }
 
-        $user = new RegistrationUser();
-        $user->login = $login;
-        $user->password = $password;
-        $user->email = $email;
-        
-        //$isRegistration = $user->signup();
+    public function actionCreate()
+    {
+        $model = new RegistrationUser(Yii::$app->request->post());
 
-        if (!$user->signup()) {
-            return [
-                'response' => 'error',
-                'message' => $user->getErrorMessage()
-            ];
+        if ($model->signup()) {
+            return $this->sendResponse(self::STATUS_OK);
         }
 
-        return [
-            'response' => 'ok',
-        ];
+        return $this->sendResponse(self::STATUS_ERROR, $this->getMessage($model));
+    }
+
+    public function actionVerifyEmail()
+    {
+        $model = new VerifyEmail(Yii::$app->request->post());
+
+        if ($model->verifyEmail()) {
+            return $this->sendResponse(self::STATUS_OK, $model);
+        }
+
+        return $this->sendResponse(self::STATUS_ERROR, $this->getMessage($model));
+    }
+
+    public function actionAuth()
+    {
+        $model = new AuthorizationUser(Yii::$app->request->post());
+
+        if ($model->login()) {
+            return $this->sendResponse(self::STATUS_OK, $model->login());
+        }
+
+        return $this->sendResponse(self::STATUS_ERROR, $this->getMessage($model));
+    }
+
+    private function getMessage($model)
+    {
+        $errorValidation = $model->getErrorMessage();
+
+        return $errorValidation ? $errorValidation : self::MESSAGE_ERROR_SERVER;
     }
 }
