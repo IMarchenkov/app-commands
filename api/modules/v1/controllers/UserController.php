@@ -6,7 +6,9 @@ use Yii;
 use yii\filters\auth\HttpBearerAuth;
 use api\models\RegistrationUser;
 use api\models\VerifyEmail;
-use api\models\AuthorizationUser;
+use api\models\AuthenticationUser;
+use api\models\RecoveryPasswordUser;
+use api\models\ResetPasswordUser;
 
 class UserController extends ApiController
 {
@@ -16,7 +18,8 @@ class UserController extends ApiController
 
         $behaviors['authenticator'] = [
             'class' => HttpBearerAuth::class,
-            'except' => ['create', 'verify-email', 'auth'],
+            //'except' => ['create', 'verify-email', 'auth', 'recovery'],
+            'only' => ['index', 'update'],
         ];
 
         return $behaviors;
@@ -29,7 +32,9 @@ class UserController extends ApiController
 
     public function actionIndex()
     {
-        return $this->sendResponse(self::STATUS_OK, Yii::$app->user->identity);
+        //return $this->sendResponse(self::STATUS_OK, Yii::$app->user->identity);
+        $user = Yii::$app->user->identity;
+        return $this->sendResponse(self::STATUS_OK, $user);
     }
 
     public function actionCreate()
@@ -56,10 +61,32 @@ class UserController extends ApiController
 
     public function actionAuth()
     {
-        $model = new AuthorizationUser(Yii::$app->request->post());
+        $model = new AuthenticationUser(Yii::$app->request->post());
 
         if ($model->login()) {
-            return $this->sendResponse(self::STATUS_OK, $model->login());
+            return $this->sendResponse(self::STATUS_OK);
+        }
+
+        return $this->sendResponse(self::STATUS_ERROR, $this->getMessage($model));
+    }
+
+    public function actionRecovery()
+    {
+        $model = new RecoveryPasswordUser(Yii::$app->request->post());
+
+        if ($model->recoveryPassword()) {
+            return $this->sendResponse(self::STATUS_OK);
+        }
+
+        return $this->sendResponse(self::STATUS_ERROR, $this->getMessage($model));
+    }
+
+    public function actionResetPassword()
+    {
+        $model = new ResetPasswordUser(Yii::$app->request->post());
+
+        if ($model->resetPassword()) {
+            return $this->sendResponse(self::STATUS_OK, $model->resetPassword());
         }
 
         return $this->sendResponse(self::STATUS_ERROR, $this->getMessage($model));

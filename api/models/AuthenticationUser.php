@@ -7,7 +7,7 @@ use common\models\User;
 /**
  * Login form
  */
-class AuthorizationUser extends ValidationModel
+class AuthenticationUser extends ValidationModel
 {
     public $login;
     public $password;

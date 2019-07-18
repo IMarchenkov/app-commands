@@ -19,14 +19,14 @@ class RegistrationUser extends ValidationModel
         return [
             ['login', 'trim'],
             ['login', 'required', 'message' => 'Логин не может быть пустым.'],
-            ['login', 'unique', 'targetClass' => '\common\models\User', 'message' => 'Данный логин уже используется.'],
+            ['login', 'unique', 'targetClass' => User::class, 'message' => 'Данный логин уже используется.'],
             ['login', 'string', 'min' => 2, 'max' => 255, 'tooShort' => 'Логин должен содержать как минимум 2 символа.', 'tooLong' => 'Максимальная длина логина - 255 символов.'],
 
             ['email', 'trim'],
             ['email', 'required', 'message' => 'Email не может быть пустым.'],
             ['email', 'email', 'message' => 'Не валидный email адрес.'],
             ['email', 'string', 'max' => 255, 'tooLong' => 'Email может содержать максимум 255 символов.'],
-            ['email', 'unique', 'targetClass' => '\common\models\User', 'message' => 'Данный email уже используется.'],
+            ['email', 'unique', 'targetClass' => User::class, 'message' => 'Данный email уже используется.'],
 
             ['password', 'required', 'message' => 'Пароль не может быть пустым.'],
             ['password', 'string', 'min' => 6, 'tooShort' => 'Пароль должен содержать как минимум 6 символов.'],

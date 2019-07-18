@@ -43,6 +43,8 @@ return [
                     'extraPatterns' => [
                         'POST verify-email' => 'verify-email',
                         'POST auth' => 'auth',
+                        'POST recovery' => 'recovery',
+                        'POST reset-password' => 'reset-password',
                     ],
                 ]
             ],        
