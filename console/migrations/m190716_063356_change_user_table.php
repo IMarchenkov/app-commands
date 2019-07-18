@@ -13,6 +13,7 @@ class m190716_063356_change_user_table extends Migration
     public function safeUp()
     {
         $this->addColumn('{{%user}}', 'access_token', $this->string()->notNull());
+        $this->addColumn('{{%user}}', 'length_password', $this->integer()->notNull());
 
         $this->renameColumn('{{%user}}', 'username', 'login');
 
@@ -38,6 +39,7 @@ class m190716_063356_change_user_table extends Migration
 
         $this->renameColumn('{{%user}}', 'login', 'username');
 
+        $this->dropColumn('{{%user}}', 'length_password');
         $this->dropColumn('{{%user}}', 'access_token');
     }
 }

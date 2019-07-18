@@ -9,6 +9,7 @@ use api\models\VerifyEmail;
 use api\models\AuthenticationUser;
 use api\models\RecoveryPasswordUser;
 use api\models\ResetPasswordUser;
+use common\models\User;
 
 class UserController extends ApiController
 {
@@ -18,7 +19,6 @@ class UserController extends ApiController
 
         $behaviors['authenticator'] = [
             'class' => HttpBearerAuth::class,
-            //'except' => ['create', 'verify-email', 'auth', 'recovery'],
             'only' => ['index', 'update'],
         ];
 
@@ -32,14 +32,15 @@ class UserController extends ApiController
 
     public function actionIndex()
     {
-        //return $this->sendResponse(self::STATUS_OK, Yii::$app->user->identity);
         $user = Yii::$app->user->identity;
+        $user->setScenario(User::SCENARIO_PROFILE);
         return $this->sendResponse(self::STATUS_OK, $user);
     }
 
     public function actionCreate()
     {
-        $model = new RegistrationUser(Yii::$app->request->post());
+        $model = new RegistrationUser();
+        $model->setAttributes(Yii::$app->request->post());
 
         if ($model->signup()) {
             return $this->sendResponse(self::STATUS_OK);
@@ -50,10 +51,11 @@ class UserController extends ApiController
 
     public function actionVerifyEmail()
     {
-        $model = new VerifyEmail(Yii::$app->request->post());
+        $model = new VerifyEmail();
+        $model->setAttributes(Yii::$app->request->post());
 
         if ($model->verifyEmail()) {
-            return $this->sendResponse(self::STATUS_OK, $model);
+            return $this->sendResponse(self::STATUS_OK);
         }
 
         return $this->sendResponse(self::STATUS_ERROR, $this->getMessage($model));
@@ -61,7 +63,8 @@ class UserController extends ApiController
 
     public function actionAuth()
     {
-        $model = new AuthenticationUser(Yii::$app->request->post());
+        $model = new AuthenticationUser();
+        $model->setAttributes(Yii::$app->request->post());
 
         if ($model->login()) {
             return $this->sendResponse(self::STATUS_OK);
@@ -72,7 +75,8 @@ class UserController extends ApiController
 
     public function actionRecovery()
     {
-        $model = new RecoveryPasswordUser(Yii::$app->request->post());
+        $model = new RecoveryPasswordUser();
+        $model->setAttributes(Yii::$app->request->post());
 
         if ($model->recoveryPassword()) {
             return $this->sendResponse(self::STATUS_OK);
@@ -83,10 +87,11 @@ class UserController extends ApiController
 
     public function actionResetPassword()
     {
-        $model = new ResetPasswordUser(Yii::$app->request->post());
+        $model = new ResetPasswordUser();
+        $model->setAttributes(Yii::$app->request->post());
 
         if ($model->resetPassword()) {
-            return $this->sendResponse(self::STATUS_OK, $model->resetPassword());
+            return $this->sendResponse(self::STATUS_OK);
         }
 
         return $this->sendResponse(self::STATUS_ERROR, $this->getMessage($model));

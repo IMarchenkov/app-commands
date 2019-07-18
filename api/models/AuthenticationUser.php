@@ -1,12 +1,10 @@
 <?php
+
 namespace api\models;
 
 use Yii;
 use common\models\User;
 
-/**
- * Login form
- */
 class AuthenticationUser extends ValidationModel
 {
     public $login;
@@ -34,8 +32,8 @@ class AuthenticationUser extends ValidationModel
     public function validatePassword($attribute, $params)
     {
         if (!$this->hasErrors()) {
-            $user = $this->getUser();
-            if (!$user || !$user->validatePassword($this->password)) {
+            $this->_user = User::findByLogin($this->login);
+            if (!$this->_user || !$this->_user->validatePassword($this->password)) {
                 $this->addError($attribute, 'Некорректный логин или пароль.');
             }
         }
@@ -43,20 +41,16 @@ class AuthenticationUser extends ValidationModel
 
     public function login()
     {
-        if ($this->validate()) {
-            Yii::$app->response->headers->set('Authorization', 'Bearer ' . $this->getUser()->access_token);
-            return true;
-        }
-        
-        return false;
-    }
-
-    private function getUser()
-    {
-        if ($this->_user === null) {
-            $this->_user = User::findByLogin($this->login);
+        if (!$this->validate()) {
+            return false;
         }
 
-        return $this->_user;
+        $user = $this->_user;
+        if (!User::checkAccessToken($user)) {
+            return false;
+        }
+
+        Yii::$app->response->headers->set('Authorization', 'Bearer '.$user->access_token);
+        return true;
     }
 }
