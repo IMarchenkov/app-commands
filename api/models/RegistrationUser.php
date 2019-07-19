@@ -11,6 +11,9 @@ class RegistrationUser extends ValidationModel
     public $email;
     public $password;
 
+    private const VIEW_EMAIL_REGISTRATION = 'emailVerify';
+    private const SUBJECT_EMAIL_REGISTRATION = 'Account registration at ';
+
     /**
      * {@inheritdoc}
      */
@@ -39,28 +42,8 @@ class RegistrationUser extends ValidationModel
             return false;
         }
 
-        $user = new User();
-        $user->login = $this->login;
-        $user->email = $this->email;
-        $user->setPassword($this->password);
-        $user->generateAuthKey();
-        $user->generateEmailVerificationToken();
-        $user->generateAccessToken();
-
-        return $user->save() && $this->sendEmail($user);
-    }
-
-    private function sendEmail($user)
-    {
-        return Yii::$app
-            ->mailer
-            ->compose(
-                ['html' => 'emailVerify-html', 'text' => 'emailVerify-text'],
-                ['user' => $user]
-            )
-            ->setFrom([Yii::$app->params['supportEmail'] => Yii::$app->name.' robot'])
-            ->setTo($this->email)
-            ->setSubject('Account registration at '.Yii::$app->name)
-            ->send();
+        $user = CreateNewUser::createUser($this);
+        return $user && 
+            SendEmailUser::sendEmail(self::VIEW_EMAIL_REGISTRATION, $user, self::SUBJECT_EMAIL_REGISTRATION);
     }
 }

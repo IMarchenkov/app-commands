@@ -10,6 +10,7 @@ use api\models\AuthenticationUser;
 use api\models\RecoveryPasswordUser;
 use api\models\ResetPasswordUser;
 use common\models\User;
+use api\models\InitBoardUser;
 
 class UserController extends ApiController
 {
@@ -54,7 +55,8 @@ class UserController extends ApiController
         $model = new VerifyEmail();
         $model->setAttributes(Yii::$app->request->post());
 
-        if ($model->verifyEmail()) {
+        $user = $model->verifyEmail();
+        if ($user && InitBoardUser::initBoard($user)) {
             return $this->sendResponse(self::STATUS_OK);
         }
 

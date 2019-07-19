@@ -1,4 +1,5 @@
 <?php
+
 namespace api\models;
 
 use Yii;
@@ -7,6 +8,9 @@ use common\models\User;
 class RecoveryPasswordUser extends ValidationModel
 {
     public $email;
+
+    private const VIEW_EMAIL_RECOVERY_PASSWORD = 'passwordResetToken';
+    private const SUBJECT_EMAIL_RECOVERY_PASSWORD = 'Password reset for ';
 
     /**
      * @var \common\models\User
@@ -33,6 +37,7 @@ class RecoveryPasswordUser extends ValidationModel
                 'status' => User::STATUS_ACTIVE,
                 'email' => $this->email,
             ]);
+
             if (!$this->_user) {
                 $this->addError($attribute, 'Не найдено ни одного пользователя с таким email.');
             }
@@ -50,20 +55,6 @@ class RecoveryPasswordUser extends ValidationModel
             return false;
         }
 
-        return $this->sendEmail($user);
-    }
-
-    private function sendEmail($user)
-    {
-        return Yii::$app
-        ->mailer
-        ->compose(
-            ['html' => 'passwordResetToken-html', 'text' => 'passwordResetToken-text'],
-            ['user' => $user]
-        )
-        ->setFrom([Yii::$app->params['supportEmail'] => Yii::$app->name . ' robot'])
-        ->setTo($this->email)
-        ->setSubject('Password reset for ' . Yii::$app->name)
-        ->send();
+        return SendEmailUser::sendEmail(self::VIEW_EMAIL_RECOVERY_PASSWORD, $user,      self::SUBJECT_EMAIL_RECOVERY_PASSWORD);
     }
 }
